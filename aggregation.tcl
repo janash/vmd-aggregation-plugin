@@ -362,11 +362,7 @@ proc ::Aggregation::aggregation { args } {
 	set aggListAll2 []
 	set rogAll []
 	set lengthAgg []
-    set sasaAll []
-	set xList []
-	set yList []
-	set zList []
-	
+		
 	set aggAvg 0
 	set aggCount 0
 	set fragments_unique [lsort -integer -increasing -unique $fragments]
@@ -392,9 +388,12 @@ proc ::Aggregation::aggregation { args } {
 		#Look for fragments within specified distance of specified fragments
 		set selString [concat $arg(sel) "and within " $arg(dist) "of ( " $arg(sel) " and fragment " $fragmentP ")"]
 		set aggSel [atomselect top $selString frame $x]
+		
 		set aggRes [$aggSel get fragment]
 		set resSel [atomselect top "fragment $aggRes"]
+		
 		set aggResid [$resSel get resid]
+		
 		#Get unique fragments
 		set aggRes_unique [lsort -unique $aggRes]
 		set aggResid_unique [lsort -unique $aggResid]
@@ -484,7 +483,6 @@ proc ::Aggregation::aggregation { args } {
 	    if {[llength $fragmentP]>0} {
 	       set rogAll [concat $rogAll $rog2]
 	       set lengthAgg [concat $lengthAgg [llength $fragmentP]]
-	       #set sasaAll [concat $sasaAll $sasaSel]
 	       if {$arg(pdbflag)==1} { 
 			   set pdbString $arg(pdbprefix)
 			   append pdbString "_n"
