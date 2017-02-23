@@ -474,7 +474,11 @@ proc ::Aggregation::aggregation { args } {
 	      mol representation Licorice 0.3 10.0 10.0
 	      mol addrep top
 	      }
-	    	    
+	    
+	    set selChainn [atomselect top $selString frame $x]
+	    set selSASA [atomselect top $selString frame $x]
+	   
+	    
 	    set rog2 [measure rgyr $selChainn]
 	    set nLP [llength $fragmentP]
 	    if {[llength $fragmentP]>0} {
