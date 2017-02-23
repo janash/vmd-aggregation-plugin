@@ -372,17 +372,29 @@ proc ::Aggregation::aggregation { args } {
 	set Ulength [llength $fragments_unique]
 
 	for {set y 0} {$y<$Ulength} {incr y} {
+	   #Look for the fragment # of interest (y) in the list of fragments
+	   #already assigned to an aggregate
 	   set foundN [lsearch $aggListAll [lindex $fragments_unique $y]]
+	   
+	   #If the fragment of interest is not in the list, perform 
+	   #aggregation analysis
 	   if {$foundN==-1} {
-	   set aggNum 1
-	   set fragmentP [lindex $fragments_unique $y]
-	   set original $fragmentP
-
-	   set doneMoving 0
-	   set moveFlag 0
-	   set chainCount 0
-	   set dim 0
-	   set moveTwice 0
+		   #Set some variables to start. aggNum gives the number of 
+		   #fragments per aggregate
+		   #fragment P gives the initial fragment of interest. This 
+		   #variable will be appended to as analysis continues
+		   set aggNum 1
+		   set fragmentP [lindex $fragments_unique $y]
+		   
+		   #Place holder. initial fragment
+		   set original $fragmentP
+		   
+		   #Analysis flags
+		   set doneMoving 0
+		   set moveFlag 0
+		   set chainCount 0
+		   set dim 0
+		   set moveTwice 0
 
 	   while {$doneMoving==0} {
 		#Look for fragments within specified distance of specified fragments
@@ -462,22 +474,7 @@ proc ::Aggregation::aggregation { args } {
 	      mol representation Licorice 0.3 10.0 10.0
 	      mol addrep top
 	      }
-	    
-	    set selString2 [concat "same fragment as " $selString]
-	    set selChain [atomselect top $selString2 frame $x]
-	    $selChain set chain $chainCount
-
-	    set com1 [measure center $selChain weight mass]
-	    set rog [measure rgyr $selChain]
-	   $selChain delete
-
-
-	    set selChainn [atomselect top $selString frame $x]
-	    set selSASA [atomselect top $selString frame $x]
-	    
-	    #To be implemented in the future.
-	    #set sasaSel [measure sasa 1.4 $selSASA]
-	    
+	    	    
 	    set rog2 [measure rgyr $selChainn]
 	    set nLP [llength $fragmentP]
 	    if {[llength $fragmentP]>0} {
