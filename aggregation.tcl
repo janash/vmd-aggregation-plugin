@@ -395,71 +395,74 @@ proc ::Aggregation::aggregation { args } {
 		   set chainCount 0
 		   set dim 0
 		   set moveTwice 0
+		   
+		   while {$doneMoving==0} {
+			   #Look for fragments within specified distance of specified fragments
+			   set selString [concat $arg(sel) "and within " $arg(dist) "of ( " $arg(sel) " and fragment " $fragmentP ")"]
+			   set aggSel [atomselect top $selString frame $x]
+			   
+			   set aggRes [$aggSel get fragment]
+			   set resSel [atomselect top "fragment $aggRes"]
+			   
+			   set aggResid [$resSel get resid]
+			   
+			   #Get unique fragments
+			   set aggRes_unique [lsort -unique $aggRes]
+			   set aggResid_unique [lsort -unique $aggResid]
+			   set aggNumPrevious $aggNum
+			   set aggNum [llength $aggRes_unique]
+			   set fragmentP $aggRes_unique
+			   set aggList [concat $aggList $fragmentP]
+			   
+			   if {$aggNumPrevious==$aggNum  && $arg(bound)==1} {
+				   # If search appears to be finished, need to check
+				   # periodic boundaries.
+				   set moveSel [atomselect top "fragment $fragmentP" frame $x]
+				   array set coords {}
+				   set coords(0) [$aggSel get {x}]
+				   set coords(1) [$aggSel get {y}]
+				   set coords(2) [$aggSel get {z}]
+				   
+				   set coordsDim $coords($dim)
+				   set coordSorted [lsort -increasing $coordsDim]
+				   set coorFirst [lindex $coordSorted 0]
+				   set coorLast [lindex $coordSorted end]
+				   set diffFirst [expr abs($coorFirst-0)]
+				   set diffLast [expr abs($coorLast-[lindex $boxDim $dim])]
+				   set moveBy [list 0 0 0]
+				   set moveNum [lindex $boxDim $dim]
+				   
+				   if {$diffFirst< [expr 2*$arg(dist)] || $coorFirst>0} {
+					   set moveBy [lreplace $moveBy $dim $dim $moveNum]
+					   $moveSel moveby $moveBy
+					}
+					   
+				   if {$diffLast< [expr 2*$arg(dist)] || $coorLast>[lindex $boxDim $dim]} {
+					   set moveBy [lreplace $moveBy $dim $dim -$moveNum]
+					   $moveSel moveby $moveBy
+					}
+					   
+				   $moveSel delete
+				   
+				   if {$dim==2} {
+					   set dim 0
+					   if {$moveTwice==1} {
+						   set doneMoving 1
+						}
+					   set moveTwice 1
+					}
+					
+					set dim [expr $dim +1 ]
+				}
+					
+					
+				if {$aggNumPrevious==$aggNum && $arg(bound)==0} {
+					set doneMoving 1
+				}
 
-	   while {$doneMoving==0} {
-		#Look for fragments within specified distance of specified fragments
-		set selString [concat $arg(sel) "and within " $arg(dist) "of ( " $arg(sel) " and fragment " $fragmentP ")"]
-		set aggSel [atomselect top $selString frame $x]
+			$aggSel delete
 		
-		set aggRes [$aggSel get fragment]
-		set resSel [atomselect top "fragment $aggRes"]
-		
-		set aggResid [$resSel get resid]
-		
-		#Get unique fragments
-		set aggRes_unique [lsort -unique $aggRes]
-		set aggResid_unique [lsort -unique $aggResid]
-		set aggNumPrevious $aggNum
-		set aggNum [llength $aggRes_unique]
-		set fragmentP $aggRes_unique
-		set aggList [concat $aggList $fragmentP]
-		
-		
-		if {$aggNumPrevious==$aggNum  && $arg(bound)==1} {
-		  # If search appears to be finished, need to check
-		  # periodic boundaries.
-			set moveSel [atomselect top "fragment $fragmentP" frame $x]
-			array set coords {}
-			set coords(0) [$aggSel get {x}]
-			set coords(1) [$aggSel get {y}]
-			set coords(2) [$aggSel get {z}]
-
-			set coordsDim $coords($dim)
-			set coordSorted [lsort -increasing $coordsDim]
-			set coorFirst [lindex $coordSorted 0]
-			set coorLast [lindex $coordSorted end]
-			set diffFirst [expr abs($coorFirst-0)]
-			set diffLast [expr abs($coorLast-[lindex $boxDim $dim])]
-			set moveBy [list 0 0 0]
-			set moveNum [lindex $boxDim $dim]
-			
-			if {$diffFirst< [expr 2*$arg(dist)] || $coorFirst>0} {
-			  set moveBy [lreplace $moveBy $dim $dim $moveNum]
-			  $moveSel moveby $moveBy
 			}
-			
-			if {$diffLast< [expr 2*$arg(dist)] || $coorLast>[lindex $boxDim $dim]} {
-			  set moveBy [lreplace $moveBy $dim $dim -$moveNum]
-			  $moveSel moveby $moveBy
-			}
-			 $moveSel delete
-			 if {$dim==2} {
-			  set dim 0
-			  if {$moveTwice==1} {
-				  set doneMoving 1
-			  }
-				set moveTwice 1
-			 }
-			 set dim [expr $dim +1 ]
-		}
-		
-		if {$aggNumPrevious==$aggNum && $arg(bound)==0} {
-		  set doneMoving 1
-		}
-
-		$aggSel delete
-		
-	   }
 
 
 	  if ($x==[expr $nf-$incrNum]) {
