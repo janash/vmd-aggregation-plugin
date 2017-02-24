@@ -459,66 +459,71 @@ proc ::Aggregation::aggregation { args } {
 				if {$aggNumPrevious==$aggNum && $arg(bound)==0} {
 					set doneMoving 1
 				}
-
-			$aggSel delete
+				$aggSel delete
 		
 			}
 
 
-	  if ($x==[expr $nf-$incrNum]) {
-	      mol selection $selString
-	      set colorNum $aggCount
-	      if $colorNum>32 {
-	       set colorNum [expr $colorNum-32]
-	      }
-
-	      #Color aggregates
-	      mol color ColorID $colorNum
-	      mol representation Licorice 0.3 10.0 10.0
-	      mol addrep top
-	      }
+		  if ($x==[expr $nf-$incrNum]) {
+			  mol selection $selString
+			  set colorNum $aggCount
+			  if $colorNum>32 {
+			   set colorNum [expr $colorNum-32]
+			  }
+			  
+			  #Color aggregates
+			  mol color ColorID $colorNum
+			  mol representation Licorice 0.3 10.0 10.0
+			  mol addrep top
+			}
 	    
-	    set selChainn [atomselect top $selString frame $x]
-	    set selSASA [atomselect top $selString frame $x]
+		  
+		  set selChainn [atomselect top $selString frame $x]
+		  set selSASA [atomselect top $selString frame $x]
 	   
 	    
-	    set rog2 [measure rgyr $selChainn]
-	    set nLP [llength $fragmentP]
-	    if {[llength $fragmentP]>0} {
-	       set rogAll [concat $rogAll $rog2]
-	       set lengthAgg [concat $lengthAgg [llength $fragmentP]]
-	       if {$arg(pdbflag)==1} { 
-			   set pdbString $arg(pdbprefix)
-			   append pdbString "_n"
-			   append pdbString $nLP
-			   append pdbString "_"
+		  set rog2 [measure rgyr $selChainn]
+		  set nLP [llength $fragmentP]
+	    
+			if {[llength $fragmentP]>0} {
+			   set rogAll [concat $rogAll $rog2]
+			   set lengthAgg [concat $lengthAgg [llength $fragmentP]]
+			   if {$arg(pdbflag)==1} { 
+				   set pdbString $arg(pdbprefix)
+				   append pdbString "_n"
+				   append pdbString $nLP
+				   append pdbString "_"
 				   append pdbString $x
 				   append pdbString "_"
 				   append pdbString [lindex $fragmentP 1]
 				   append pdbString ".pdb"
-			   set pdbString [string trim $pdbString " "]
-			   $selChainn writepdb $pdbString
-	   }
+				   set pdbString [string trim $pdbString " "]
+				   $selChainn writepdb $pdbString
+				}
+
+			}
+	    
+	  
+		  set chainCount [expr $chainCount+1]
+		  $selChainn delete
+
+
+
+		  set aggListAll [concat $aggListAll $fragmentP]
+		  lappend aggListAll2 $aggRes_unique
+		  set aggCount [expr $aggCount+1]
+		  set aggAvg [expr $aggAvg+$aggNum]
+
+		  if {$aggNumPrevious==1} {
+			  set aggNumPrevious 0
+		  }
+		   
+		   
+		   #Clears list for next aggregate.
+		   set aggList []
 
 	    }
-	    set chainCount [expr $chainCount+1]
-	    $selChainn delete
-
-
-
-	   set aggListAll [concat $aggListAll $fragmentP]
-	   lappend aggListAll2 $aggRes_unique
-	   set aggCount [expr $aggCount+1]
-	   set aggAvg [expr $aggAvg+$aggNum]
-
-	    if {$aggNumPrevious==1} {
-	      set aggNumPrevious 0
-	    }
-	    #Clears list for next aggregate.
-	    set aggList []
-
-	   }
-	   }
+	}
 	   
 	set aggAvgP $aggAvg
 	set aggAvg [expr double($aggAvg)/double($aggCount)]
