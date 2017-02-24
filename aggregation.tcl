@@ -368,174 +368,176 @@ proc ::Aggregation::aggregation { args } {
 	set fragments_unique [lsort -integer -increasing -unique $fragments]
 	set aggNumPrevious 0
 	
-	#Look for clusters - Initial Pass
-	set Ulength [llength $fragments_unique]
+		#Look for clusters - Initial Pass
+		set Ulength [llength $fragments_unique]
 
-	for {set y 0} {$y<$Ulength} {incr y} {
-	   #Look for the fragment # of interest (y) in the list of fragments
-	   #already assigned to an aggregate
-	   set foundN [lsearch $aggListAll [lindex $fragments_unique $y]]
-	   
-	   #If the fragment of interest is not in the list, perform 
-	   #aggregation analysis
-	   if {$foundN==-1} {
-		   #Set some variables to start. aggNum gives the number of 
-		   #fragments per aggregate
-		   #fragment P gives the initial fragment of interest. This 
-		   #variable will be appended to as analysis continues
-		   set aggNum 1
-		   set fragmentP [lindex $fragments_unique $y]
+		for {set y 0} {$y<$Ulength} {incr y} {
+		   #Look for the fragment # of interest (y) in the list of fragments
+		   #already assigned to an aggregate
+		   set foundN [lsearch $aggListAll [lindex $fragments_unique $y]]
 		   
-		   #Place holder. initial fragment
-		   set original $fragmentP
-		   
-		   #Analysis flags
-		   set doneMoving 0
-		   set moveFlag 0
-		   set chainCount 0
-		   set dim 0
-		   set moveTwice 0
-		   
-		   while {$doneMoving==0} {
-			   #Look for fragments within specified distance of specified fragments
-			   set selString [concat $arg(sel) "and within " $arg(dist) "of ( " $arg(sel) " and fragment " $fragmentP ")"]
-			   set aggSel [atomselect top $selString frame $x]
+		   #If the fragment of interest is not in the list, perform 
+		   #aggregation analysis
+		   if {$foundN==-1} {
+			   #Set some variables to start. aggNum gives the number of 
+			   #fragments per aggregate
+			   #fragment P gives the initial fragment of interest. This 
+			   #variable will be appended to as analysis continues
+			   set aggNum 1
+			   set fragmentP [lindex $fragments_unique $y]
 			   
-			   set aggRes [$aggSel get fragment]
-			   set resSel [atomselect top "fragment $aggRes"]
+			   #Place holder. initial fragment
+			   set original $fragmentP
 			   
-			   set aggResid [$resSel get resid]
+			   #Analysis flags
+			   set doneMoving 0
+			   set moveFlag 0
+			   set chainCount 0
+			   set dim 0
+			   set moveTwice 0
 			   
-			   #Get unique fragments
-			   set aggRes_unique [lsort -unique $aggRes]
-			   set aggResid_unique [lsort -unique $aggResid]
-			   set aggNumPrevious $aggNum
-			   set aggNum [llength $aggRes_unique]
-			   set fragmentP $aggRes_unique
-			   set aggList [concat $aggList $fragmentP]
-			   
-			   if {$aggNumPrevious==$aggNum  && $arg(bound)==1} {
-				   # If search appears to be finished, need to check
-				   # periodic boundaries.
-				   set moveSel [atomselect top "fragment $fragmentP" frame $x]
-				   array set coords {}
-				   set coords(0) [$aggSel get {x}]
-				   set coords(1) [$aggSel get {y}]
-				   set coords(2) [$aggSel get {z}]
+			   while {$doneMoving==0} {
+				   #Look for fragments within specified distance of specified fragments
+				   set selString [concat $arg(sel) "and within " $arg(dist) "of ( " $arg(sel) " and fragment " $fragmentP ")"]
+				   set aggSel [atomselect top $selString frame $x]
 				   
-				   set coordsDim $coords($dim)
-				   set coordSorted [lsort -increasing $coordsDim]
-				   set coorFirst [lindex $coordSorted 0]
-				   set coorLast [lindex $coordSorted end]
-				   set diffFirst [expr abs($coorFirst-0)]
-				   set diffLast [expr abs($coorLast-[lindex $boxDim $dim])]
-				   set moveBy [list 0 0 0]
-				   set moveNum [lindex $boxDim $dim]
+				   set aggRes [$aggSel get fragment]
+				   set resSel [atomselect top "fragment $aggRes"]
 				   
-				   if {$diffFirst< [expr 2*$arg(dist)] || $coorFirst>0} {
-					   set moveBy [lreplace $moveBy $dim $dim $moveNum]
-					   $moveSel moveby $moveBy
-					}
+				   set aggResid [$resSel get resid]
+				   
+				   #Get unique fragments
+				   set aggRes_unique [lsort -unique $aggRes]
+				   set aggResid_unique [lsort -unique $aggResid]
+				   set aggNumPrevious $aggNum
+				   set aggNum [llength $aggRes_unique]
+				   set fragmentP $aggRes_unique
+				   set aggList [concat $aggList $fragmentP]
+				   
+				   if {$aggNumPrevious==$aggNum  && $arg(bound)==1} {
+					   # If search appears to be finished, need to check
+					   # periodic boundaries.
+					   set moveSel [atomselect top "fragment $fragmentP" frame $x]
+					   array set coords {}
+					   set coords(0) [$aggSel get {x}]
+					   set coords(1) [$aggSel get {y}]
+					   set coords(2) [$aggSel get {z}]
 					   
-				   if {$diffLast< [expr 2*$arg(dist)] || $coorLast>[lindex $boxDim $dim]} {
-					   set moveBy [lreplace $moveBy $dim $dim -$moveNum]
-					   $moveSel moveby $moveBy
-					}
+					   set coordsDim $coords($dim)
+					   set coordSorted [lsort -increasing $coordsDim]
+					   set coorFirst [lindex $coordSorted 0]
+					   set coorLast [lindex $coordSorted end]
+					   set diffFirst [expr abs($coorFirst-0)]
+					   set diffLast [expr abs($coorLast-[lindex $boxDim $dim])]
+					   set moveBy [list 0 0 0]
+					   set moveNum [lindex $boxDim $dim]
 					   
-				   $moveSel delete
-				   
-				   if {$dim==2} {
-					   set dim 0
-					   if {$moveTwice==1} {
-						   set doneMoving 1
+					   if {$diffFirst< [expr 2*$arg(dist)] || $coorFirst<0} {
+						   set moveBy [lreplace $moveBy $dim $dim $moveNum]
+						   $moveSel moveby $moveBy
 						}
-					   set moveTwice 1
+						   
+					   if {$diffLast< [expr 2*$arg(dist)] || $coorLast>[lindex $boxDim $dim]} {
+						   set moveBy [lreplace $moveBy $dim $dim -$moveNum]
+						   $moveSel moveby $moveBy
+						}
+						
+					   $moveSel delete
+					   
+					   if {$dim==2} {
+						   set dim 0
+						   if {$moveTwice==1} {
+							   set doneMoving 1
+							}
+						   set moveTwice 1
+						}
+						
+						set dim [expr $dim +1 ]
+					}
+
+					
+					#Condition for non-periodic boundaries
+					if {$aggNumPrevious==$aggNum && $arg(bound)==0} {
+						set doneMoving 1
 					}
 					
-					set dim [expr $dim +1 ]
+					$aggSel delete
+			
 				}
-					
-					
-				if {$aggNumPrevious==$aggNum && $arg(bound)==0} {
-					set doneMoving 1
-				}
-				$aggSel delete
-		
-			}
 
 
-		  if ($x==[expr $nf-$incrNum]) {
-			  mol selection $selString
-			  set colorNum $aggCount
-			  if $colorNum>32 {
-			   set colorNum [expr $colorNum-32]
-			  }
+			  if ($x==[expr $nf-$incrNum]) {
+				  mol selection $selString
+				  set colorNum $aggCount
+				  if $colorNum>32 {
+				   set colorNum [expr $colorNum-32]
+				  }
+				  
+				  #Color aggregates
+				  mol color ColorID $colorNum
+				  mol representation Licorice 0.3 10.0 10.0
+				  mol addrep top
+				}
+			
 			  
-			  #Color aggregates
-			  mol color ColorID $colorNum
-			  mol representation Licorice 0.3 10.0 10.0
-			  mol addrep top
-			}
-	    
-		  
-		  set selChainn [atomselect top $selString frame $x]
-		  set selSASA [atomselect top $selString frame $x]
-	   
-	    
-		  set rog2 [measure rgyr $selChainn]
-		  set nLP [llength $fragmentP]
-	    
-			if {[llength $fragmentP]>0} {
-			   set rogAll [concat $rogAll $rog2]
-			   set lengthAgg [concat $lengthAgg [llength $fragmentP]]
-			   if {$arg(pdbflag)==1} { 
-				   set pdbString $arg(pdbprefix)
-				   append pdbString "_n"
-				   append pdbString $nLP
-				   append pdbString "_"
-				   append pdbString $x
-				   append pdbString "_"
-				   append pdbString [lindex $fragmentP 1]
-				   append pdbString ".pdb"
-				   set pdbString [string trim $pdbString " "]
-				   $selChainn writepdb $pdbString
+			  set selChainn [atomselect top $selString frame $x]
+			  set selSASA [atomselect top $selString frame $x]
+		   
+			
+			  set rog2 [measure rgyr $selChainn]
+			  set nLP [llength $fragmentP]
+			
+				if {[llength $fragmentP]>0} {
+				   set rogAll [concat $rogAll $rog2]
+				   set lengthAgg [concat $lengthAgg [llength $fragmentP]]
+				   if {$arg(pdbflag)==1} { 
+					   set pdbString $arg(pdbprefix)
+					   append pdbString "_n"
+					   append pdbString $nLP
+					   append pdbString "_"
+					   append pdbString $x
+					   append pdbString "_"
+					   append pdbString [lindex $fragmentP 1]
+					   append pdbString ".pdb"
+					   set pdbString [string trim $pdbString " "]
+					   $selChainn writepdb $pdbString
+					}
+
 				}
+			
+		  
+			  set chainCount [expr $chainCount+1]
+			  $selChainn delete
+
+
+
+			  set aggListAll [concat $aggListAll $fragmentP]
+			  lappend aggListAll2 $aggRes_unique
+			  set aggCount [expr $aggCount+1]
+			  set aggAvg [expr $aggAvg+$aggNum]
+
+			  if {$aggNumPrevious==1} {
+				  set aggNumPrevious 0
+			  }
+			   
+			   
+			   #Clears list for next aggregate.
+			   set aggList []
 
 			}
-	    
-	  
-		  set chainCount [expr $chainCount+1]
-		  $selChainn delete
-
-
-
-		  set aggListAll [concat $aggListAll $fragmentP]
-		  lappend aggListAll2 $aggRes_unique
-		  set aggCount [expr $aggCount+1]
-		  set aggAvg [expr $aggAvg+$aggNum]
-
-		  if {$aggNumPrevious==1} {
-			  set aggNumPrevious 0
-		  }
-		   
-		   
-		   #Clears list for next aggregate.
-		   set aggList []
-
-	    }
-	}
+		}
 	   
-	set aggAvgP $aggAvg
-	set aggAvg [expr double($aggAvg)/double($aggCount)]
-	  if {$arg(rogflag)==1} {
-	  puts $rogFile "$x $lengthAgg $rogAll"
-	}
+		set aggAvgP $aggAvg
+		set aggAvg [expr double($aggAvg)/double($aggCount)]
+		if {$arg(rogflag)==1} {
+		puts $rogFile "$x $lengthAgg $rogAll"
+		}
 	
-	puts $outfile "$x\t$aggListAll2"
+		puts $outfile "$x\t$aggListAll2"
 
 
 
-}
+	}
 
 close $outfile
 
