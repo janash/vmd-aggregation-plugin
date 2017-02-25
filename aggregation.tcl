@@ -430,16 +430,15 @@ proc ::Aggregation::aggregation { args } {
 					   set coorLast [lindex $coordSorted end]
 					   set diffFirst [expr abs($coorFirst-0)]
 					   set diffLast [expr abs($coorLast-[lindex $boxDim $dim])]
-					   puts $diffLast
 					   set moveBy [list 0 0 0]
 					   set moveNum [lindex $boxDim $dim]
 					   
-					   if {$diffFirst< [expr 4*$arg(dist)] || $coorFirst<0} {
+					   if {$diffFirst< [expr 2*$arg(dist)] || $coorFirst<0} {
 						   set moveBy [lreplace $moveBy $dim $dim $moveNum]
 						   $moveSel moveby $moveBy
 						}
 						   
-					   if {$diffLast< [expr 4*$arg(dist)] || $coorLast>[lindex $boxDim $dim]} {
+					   if {$diffLast< [expr 2*$arg(dist)] || $coorLast>[lindex $boxDim $dim]} {
 						   set moveBy [lreplace $moveBy $dim $dim -$moveNum]
 						   $moveSel moveby $moveBy
 						}
@@ -447,7 +446,7 @@ proc ::Aggregation::aggregation { args } {
 					   $moveSel delete
 					   
 					   if {$dim==2} {
-						   set dim 0
+						   set dim -1
 						   if {$moveTwice==1} {
 							   set doneMoving 1
 							}
