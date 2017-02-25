@@ -397,6 +397,7 @@ proc ::Aggregation::aggregation { args } {
 			   set moveTwice 0
 			   
 			   while {$doneMoving==0} {
+				   puts $dim
 				   #Look for fragments within specified distance of specified fragments
 				   set selString [concat $arg(sel) "and within " $arg(dist) "of ( " $arg(sel) " and fragment " $fragmentP ")"]
 				   set aggSel [atomselect top $selString frame $x]
@@ -429,15 +430,16 @@ proc ::Aggregation::aggregation { args } {
 					   set coorLast [lindex $coordSorted end]
 					   set diffFirst [expr abs($coorFirst-0)]
 					   set diffLast [expr abs($coorLast-[lindex $boxDim $dim])]
+					   puts $diffLast
 					   set moveBy [list 0 0 0]
 					   set moveNum [lindex $boxDim $dim]
 					   
-					   if {$diffFirst< [expr 2*$arg(dist)] || $coorFirst<0} {
+					   if {$diffFirst< [expr 4*$arg(dist)] || $coorFirst<0} {
 						   set moveBy [lreplace $moveBy $dim $dim $moveNum]
 						   $moveSel moveby $moveBy
 						}
 						   
-					   if {$diffLast< [expr 2*$arg(dist)] || $coorLast>[lindex $boxDim $dim]} {
+					   if {$diffLast< [expr 4*$arg(dist)] || $coorLast>[lindex $boxDim $dim]} {
 						   set moveBy [lreplace $moveBy $dim $dim -$moveNum]
 						   $moveSel moveby $moveBy
 						}
