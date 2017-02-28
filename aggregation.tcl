@@ -398,7 +398,6 @@ proc ::Aggregation::aggregation { args } {
 			   set moveTwice 0
 			   
 			   while {$doneMoving==0} {
-				   puts $dim
 				   #Look for fragments within specified distance of specified fragments
 				   set selString [concat $arg(sel) "and within " $arg(dist) "of ( " $arg(sel) " and fragment " $fragmentP ")"]
 				   set aggSel [atomselect top $selString frame $x]
