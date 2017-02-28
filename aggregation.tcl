@@ -448,10 +448,10 @@ proc ::Aggregation::aggregation { args } {
 					   
 					   if {$dim==2} {
 						   set dim -1
-						   if {$moveTwice==1} {
+						   if {$moveTwice==3} {
 							   set doneMoving 1
 							}
-						   set moveTwice 1
+						   set moveTwice [expr $moveTwice+1]
 						}
 						
 						set dim [expr $dim +1 ]
