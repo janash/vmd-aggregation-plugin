@@ -326,6 +326,7 @@ proc ::Aggregation::aggregation { args } {
    ## Set variables from user input
   set sel [atomselect top $arg(sel)]
   set fragments [$sel get fragment]
+  $sel delete
   
   ## Open files for writing data
   set outfile [open $arg(filename) "w"]
@@ -374,7 +375,7 @@ proc ::Aggregation::aggregation { args } {
 
 		for {set y 0} {$y<$Ulength} {incr y} {
 		   #Look for the fragment # of interest (y) in the list of fragments
-		   #already assigned to an aggregate
+		   #already assigned to an aggregated
 		   set foundN [lsearch $aggListAll [lindex $fragments_unique $y]]
 		   
 		   #If the fragment of interest is not in the list, perform 
@@ -404,8 +405,8 @@ proc ::Aggregation::aggregation { args } {
 				   
 				   set aggRes [$aggSel get fragment]
 				   set resSel [atomselect top "fragment $aggRes"]
-				   
 				   set aggResid [$resSel get resid]
+				   $resSel delete
 				   
 				   #Get unique fragments
 				   set aggRes_unique [lsort -unique $aggRes]
@@ -482,7 +483,6 @@ proc ::Aggregation::aggregation { args } {
 			
 			  
 			  set selChainn [atomselect top $selString frame $x]
-			  set selSASA [atomselect top $selString frame $x]
 		   
 			
 			  set rog2 [measure rgyr $selChainn]
@@ -513,7 +513,7 @@ proc ::Aggregation::aggregation { args } {
 
 
 			  set aggListAll [concat $aggListAll $fragmentP]
-			  lappend aggListAll2 $aggRes_unique
+			  lappend aggListAll2 $aggResid_unique
 			  set aggCount [expr $aggCount+1]
 			  set aggAvg [expr $aggAvg+$aggNum]
 
