@@ -359,9 +359,8 @@ proc ::Aggregation::aggregation { args } {
   ##Run aggregation analysis
   
   for {set x $startFrame} {$x < $endFrame} {incr x $incrNum} {
-	set aggList []
 	set aggListAll []
-	set aggListAll2 []
+	set aggListAll2 {}
 	set rogAll []
 	set lengthAgg []
 		
@@ -414,7 +413,6 @@ proc ::Aggregation::aggregation { args } {
 				   set aggNumPrevious $aggNum
 				   set aggNum [llength $aggRes_unique]
 				   set fragmentP $aggRes_unique
-				   set aggList [concat $aggList $fragmentP]
 				   
 				   if {$aggNumPrevious==$aggNum  && $arg(bound)==1} {
 					   # If search appears to be finished, need to check
@@ -448,10 +446,11 @@ proc ::Aggregation::aggregation { args } {
 					   
 					   if {$dim==2} {
 						   set dim -1
-						   if {$moveTwice==3} {
+						   if {$moveTwice==1} {
 							   set doneMoving 1
 							}
-						   set moveTwice [expr $moveTwice+1]
+						   
+						   set moveTwice [expr $moveTwice+1]   
 						}
 						
 						set dim [expr $dim +1 ]
@@ -512,18 +511,24 @@ proc ::Aggregation::aggregation { args } {
 
 
 
-			  set aggListAll [concat $aggListAll $fragmentP]
-			  lappend aggListAll2 $aggResid_unique
+			  concat $aggListAll $fragmentP]
+			  puts "Before append $aggListAll2"
+			  
+			  #foreach ind $aggListAll2 {
+			#	  puts $ind
+			#  }
+			  
+			  puts "I will append $fragmentP"
+			  set aggListAll2 [lappend [lindex $aggListAll2 0] $fragmentP]
+			  puts "After append $aggListAll2"
+
+			  #append aggListAll2 $aggResid_unique
 			  set aggCount [expr $aggCount+1]
 			  set aggAvg [expr $aggAvg+$aggNum]
 
 			  if {$aggNumPrevious==1} {
 				  set aggNumPrevious 0
 			  }
-			   
-			   
-			   #Clears list for next aggregate.
-			   set aggList []
 
 			}
 		}
@@ -534,7 +539,7 @@ proc ::Aggregation::aggregation { args } {
 		puts $rogFile "$x $lengthAgg $rogAll"
 		}
 	
-		puts $outfile "$x\t$aggListAll2"
+		#puts $outfile "$x\t$aggListAll2"
 
 
 
