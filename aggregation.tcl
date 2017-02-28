@@ -11,6 +11,7 @@
 # usage: 
 
 package require Tk
+package provide aggregation 1.0
 
 namespace eval ::Aggregation:: {
   variable defaultDist 3.5
