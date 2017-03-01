@@ -324,7 +324,7 @@ proc ::Aggregation::aggregation { args } {
   
   
    ## Set variables from user input
-  set sel [atomselect top $arg(sel)]
+  set sel [atomselect $currentMol $arg(sel)]
   set fragments [$sel get fragment]
   
   ## Open files for writing data
@@ -371,6 +371,8 @@ proc ::Aggregation::aggregation { args } {
 	
 		#Look for clusters - Initial Pass
 		set Ulength [llength $fragments_unique]
+		
+
 
 		for {set y 0} {$y<$Ulength} {incr y} {
 		   #Look for the fragment # of interest (y) in the list of fragments
@@ -400,10 +402,10 @@ proc ::Aggregation::aggregation { args } {
 			   while {$doneMoving==0} {
 				   #Look for fragments within specified distance of specified fragments
 				   set selString [concat $arg(sel) "and within " $arg(dist) "of ( " $arg(sel) " and fragment " $fragmentP ")"]
-				   set aggSel [atomselect top $selString frame $x]
+				   set aggSel [atomselect $currentMol $selString frame $x]
 				   
 				   set aggRes [$aggSel get fragment]
-				   set resSel [atomselect top "fragment $aggRes"]
+				   set resSel [atomselect $currentMol "fragment $aggRes"]
 				   
 				   set aggResid [$resSel get resid]
 				   
@@ -418,7 +420,7 @@ proc ::Aggregation::aggregation { args } {
 				   if {$aggNumPrevious==$aggNum  && $arg(bound)==1} {
 					   # If search appears to be finished, need to check
 					   # periodic boundaries.
-					   set moveSel [atomselect top "fragment $fragmentP" frame $x]
+					   set moveSel [atomselect $currentMol "fragment $fragmentP" frame $x]
 					   array set coords {}
 					   set coords(0) [$aggSel get {x}]
 					   set coords(1) [$aggSel get {y}]
@@ -481,8 +483,8 @@ proc ::Aggregation::aggregation { args } {
 				}
 			
 			  
-			  set selChainn [atomselect top $selString frame $x]
-			  set selSASA [atomselect top $selString frame $x]
+			  set selChainn [atomselect $currentMol $selString frame $x]
+			  set selSASA [atomselect $currentMol $selString frame $x]
 		   
 			
 			  set rog2 [measure rgyr $selChainn]
