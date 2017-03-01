@@ -372,13 +372,13 @@ proc ::Aggregation::aggregation { args } {
 		#Look for clusters
 		set Ulength [llength $fragments_unique]
 		
-		
 		#Before looking for clusters, we move fragments which are far
 		#outside of the box to the other side of the box. 
 		if {$arg(bound)==1} {
-			for {set y 0} {$y<$Ulength} {incr y} {
+			for {set res 0} {$res<$Ulength} {incr res} {
 				set dim 0
-				set checkSel [atomselect $currentMol "fragment $y"]
+				set checkSel [atomselect $currentMol "$arg(sel) and fragment $res" frame $x]
+				set moveSel [atomselect $currentMol "fragment $res" frame $x]
 				array set coords {}
 				set coords(0) [$checkSel get {x}]
 			    set coords(1) [$checkSel get {y}]
@@ -386,22 +386,20 @@ proc ::Aggregation::aggregation { args } {
 				
 				while {$dim<3} {
 					set coordsDim $coords($dim)
-					set coordSorted [lsort -increasing $coordsDim]
+					set coordSorted [lsort -increasing -real $coordsDim]
 					set coorFirst [lindex $coordSorted 0]
 					set coorLast [lindex $coordSorted end]
-					set diffFirst [expr abs($coorFirst-0)]
-					set diffLast [expr abs($coorLast-[lindex $boxDim $dim])]
 					set moveBy [list 0 0 0]
 					set moveNum [lindex $boxDim $dim]
 					
-					if {$coorFirst < [expr 2*$arg(dist)] } {
+					if {$coorFirst < [expr -2*$arg(dist)] } {
 						set moveBy [lreplace $moveBy $dim $dim $moveNum]
-						$checkSel moveby $moveBy
+						$moveSel moveby $moveBy
 						}
 						
-					if {$coorLast> [expr $moveNum + 2*$arg(dist)]} {
+					if {$coorLast>[expr $moveNum+2*$arg(dist)]} {
 							set moveBy [lreplace $moveBy $dim $dim -$moveNum]
-							$checkSel moveby $moveBy
+							$moveSel moveby $moveBy
 						}
 						
 					set dim [expr $dim+1]
@@ -411,6 +409,8 @@ proc ::Aggregation::aggregation { args } {
 			}
 		}
 
+		
+		
 		for {set y 0} {$y<$Ulength} {incr y} {
 		   #Look for the fragment # of interest (y) in the list of fragments
 		   #already assigned to an aggregate
@@ -464,7 +464,7 @@ proc ::Aggregation::aggregation { args } {
 					   set coords(2) [$aggSel get {z}]
 					   
 					   set coordsDim $coords($dim)
-					   set coordSorted [lsort -increasing $coordsDim]
+					   set coordSorted [lsort -increasing -real $coordsDim]
 					   set coorFirst [lindex $coordSorted 0]
 					   set coorLast [lindex $coordSorted end]
 					   set diffFirst [expr abs($coorFirst-0)]
@@ -486,10 +486,10 @@ proc ::Aggregation::aggregation { args } {
 					   
 					   if {$dim==2} {
 						   set dim -1
-						   if {$moveTwice==1} {
+						   if {$moveTwice==3} {
 							   set doneMoving 1
 							}
-						   set moveTwice 1
+						   set moveTwice [expr $moveTwice+1]
 						}
 						
 						set dim [expr $dim +1 ]
