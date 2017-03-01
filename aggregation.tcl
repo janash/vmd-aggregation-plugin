@@ -369,10 +369,47 @@ proc ::Aggregation::aggregation { args } {
 	set fragments_unique [lsort -integer -increasing -unique $fragments]
 	set aggNumPrevious 0
 	
-		#Look for clusters - Initial Pass
+		#Look for clusters
 		set Ulength [llength $fragments_unique]
 		
-
+		
+		#Before looking for clusters, we move fragments which are far
+		#outside of the box to the other side of the box. 
+		if {$arg(bound)==1} {
+			for {set y 0} {$y<$Ulength} {incr y} {
+				set dim 0
+				set checkSel [atomselect $currentMol "fragment $y"]
+				array set coords {}
+				set coords(0) [$checkSel get {x}]
+			    set coords(1) [$checkSel get {y}]
+				set coords(2) [$checkSel get {z}]
+				
+				while {$dim<3} {
+					set coordsDim $coords($dim)
+					set coordSorted [lsort -increasing $coordsDim]
+					set coorFirst [lindex $coordSorted 0]
+					set coorLast [lindex $coordSorted end]
+					set diffFirst [expr abs($coorFirst-0)]
+					set diffLast [expr abs($coorLast-[lindex $boxDim $dim])]
+					set moveBy [list 0 0 0]
+					set moveNum [lindex $boxDim $dim]
+					
+					if {$coorFirst < [expr 2*$arg(dist)] } {
+						set moveBy [lreplace $moveBy $dim $dim $moveNum]
+						$checkSel moveby $moveBy
+						}
+						
+					if {$coorLast> [expr $moveNum + 2*$arg(dist)]} {
+							set moveBy [lreplace $moveBy $dim $dim -$moveNum]
+							$checkSel moveby $moveBy
+						}
+						
+					set dim [expr $dim+1]
+					
+				}
+				$checkSel delete
+			}
+		}
 
 		for {set y 0} {$y<$Ulength} {incr y} {
 		   #Look for the fragment # of interest (y) in the list of fragments
