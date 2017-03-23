@@ -329,8 +329,10 @@ proc ::Aggregation::aggregation { args } {
   
   ## Open files for writing data
   set outfile [open $arg(filename) "w"]
+  set outfile2 [open "cluster-number.dat" "w"]
   if {$arg(rogflag)==1} {
     set rogFile [open $arg(rogname) "w"]
+    set clusterFile [open "cluster-number.dat" "w"]
   }
   
   if {$arg(frames)=="all"} {
@@ -353,7 +355,7 @@ proc ::Aggregation::aggregation { args } {
 
   }
   
-  puts $outfile "Frame\tNumber of Aggregates\tAverage Aggregate Size"
+  puts $outfile "Frame\tCluster Lists"
   
   ##Run aggregation analysis
   
@@ -438,7 +440,7 @@ proc ::Aggregation::aggregation { args } {
 			   
 			   while {$doneMoving==0} {
 				   #Look for fragments within specified distance of specified fragments
-				   set selString [concat $arg(sel) "and within " $arg(dist) "of ( " $arg(sel) " and fragment " $fragmentP ")"]
+				   set selString [ concat "same residue as " $arg(sel) "and within " $arg(dist) "of ( " $arg(sel) " and fragment " $fragmentP ")"]
 				   set aggSel [atomselect $currentMol $selString frame $x]
 				   
 				   set aggRes [$aggSel get fragment]
@@ -552,7 +554,7 @@ proc ::Aggregation::aggregation { args } {
 
 
 			  set aggListAll [concat $aggListAll $fragmentP]
-			  lappend aggListAll2 $aggRes_unique
+			  lappend aggListAll2 $aggResid_unique
 			  set aggCount [expr $aggCount+1]
 			  set aggAvg [expr $aggAvg+$aggNum]
 
@@ -570,7 +572,12 @@ proc ::Aggregation::aggregation { args } {
 		set aggAvgP $aggAvg
 		set aggAvg [expr double($aggAvg)/double($aggCount)]
 		if {$arg(rogflag)==1} {
-		puts $rogFile "$x $lengthAgg $rogAll"
+			set numberOfClusters [llength $lengthAgg]
+			puts $clusterFile "$x $numberOfClusters"
+			for {set rogLoop 0} {$rogLoop<$numberOfClusters} {incr rogLoop} {
+				puts $rogFile "$x [lindex  $lengthAgg $rogLoop] [lindex $rogAll $rogLoop]"
+				
+			}
 		}
 	
 		puts $outfile "$x\t$aggListAll2"
@@ -583,6 +590,7 @@ close $outfile
 
 if {$arg(rogflag)==1} {
   close $rogFile
+  close $clusterFile
 }
 
   
